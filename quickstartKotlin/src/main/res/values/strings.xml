@@ -2,6 +2,7 @@
     <string name="app_name">Quickstart Kotlin</string>
     <string name="room_status">status</string>
     <string name="permissions_needed">Camera and Microphone permissions needed. Please allow in App Settings for additional functionality.</string>
+    <string name="share_screen">Share screen</string>
     <string name="turn_speaker_on">Speaker ON</string>
     <string name="turn_speaker_off">Speaker OFF</string>
     <string name="error_retrieving_access_token">Error retrieving token</string>
@@ -14,4 +15,9 @@
     <string name="max_audio_bitrate">Max Audio Bitrate (bits per second)</string>
     <string name="max_video_bitrate">Max Video Bitrate (bits per second)</string>
     <string name="vp8_simulcast">VP8 Simulcast</string>
+    <string name="screen_capture_error">Screen capturer error occurred.</string>
+    <string name="screen_video_track">Screen Video Track</string>
+    <string name="stop_screen_share">Stop screen share</string>
+    <string name="failed_to_add_screen_video_track">Failed to add screen video track</string>
+    <string name="screen_capture_permission_not_granted">Screen capture permission not granted</string>
 </resources>
