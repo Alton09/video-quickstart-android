@@ -128,6 +128,7 @@ class VideoActivity : AppCompatActivity() {
 
             // Only one participant is supported
             room.remoteParticipants?.firstOrNull()?.let { addRemoteParticipant(it) }
+            Log.d(TAG, "Room sid = ${room.sid}")
         }
 
         override fun onReconnected(room: Room) {
