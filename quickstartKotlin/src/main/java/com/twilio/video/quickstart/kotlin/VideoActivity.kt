@@ -475,27 +475,16 @@ class VideoActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        /*
-         * If the local video track was released when the app was put in the background, recreate.
-         */
-        localVideoTrack = if (localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
-            LocalVideoTrack.create(this,
-                    true,
-                    cameraCapturerCompat.videoCapturer)
-        } else {
-            localVideoTrack
+
+        if (screenVideoTrack == null) {
+            addLocalVideoTrack()
+
+            /*
+             * Update encoding parameters if they have changed.
+             */
+            localParticipant?.setEncodingParameters(encodingParameters)
         }
-        localVideoTrack?.addRenderer(localVideoView)
 
-        /*
-         * If connected to a Room then share the local video track.
-         */
-        localVideoTrack?.let { localParticipant?.publishTrack(it) }
-
-        /*
-         * Update encoding parameters if they have changed.
-         */
-        localParticipant?.setEncodingParameters(encodingParameters)
 
         /*
          * Route audio through cached value.
@@ -514,20 +503,7 @@ class VideoActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        /*
-         * If this local video track is being shared in a Room, remove from local
-         * participant before releasing the video track. Participants will be notified that
-         * the track has been removed.
-         */
-        localVideoTrack?.let { localParticipant?.unpublishTrack(it) }
-
-
-        /*
-         * Release the local video track before going in the background. This ensures that the
-         * camera can be used by other applications while this app is in the background.
-         */
-        localVideoTrack?.release()
-        localVideoTrack = null
+        removeLocalVideoTrack()
         super.onPause()
     }
 
@@ -614,14 +590,54 @@ class VideoActivity : AppCompatActivity() {
         }
     }
 
+    private fun removeLocalVideoTrack() {
+        /*
+         * If this local video track is being shared in a Room, remove from local
+         * participant before releasing the video track. Participants will be notified that
+         * the track has been removed.
+         */
+        localVideoTrack?.let { localParticipant?.unpublishTrack(it) }
+
+
+        /*
+         * Release the local video track before going in the background. This ensures that the
+         * camera can be used by other applications while this app is in the background.
+         */
+        localVideoTrack?.release()
+        localVideoTrack = null
+    }
+
+    private fun addLocalVideoTrack() {
+        /*
+         * If the local video track was released when the app was put in the background, recreate.
+         */
+        localVideoTrack = if (localVideoTrack == null && checkPermissionForCameraAndMicrophone()) {
+            LocalVideoTrack.create(this,
+                    true,
+                    cameraCapturerCompat.videoCapturer)
+        } else {
+            localVideoTrack
+        }
+        localVideoTrack?.addRenderer(localVideoView)
+
+        /*
+         * If connected to a Room then share the local video track.
+         */
+        localVideoTrack?.let { localParticipant?.publishTrack(it) }
+    }
+
     private fun startScreenCapture() {
+
         screenCapturer?.let { screenCapturer ->
+            removeLocalVideoTrack()
             screenVideoTrack = LocalVideoTrack.create(this, true, screenCapturer)?.let { screenVideoTrack ->
                 screenCaptureMenuItem?.run {
                     setIcon(R.drawable.ic_stop_screen_share_white_24dp)
                     setTitle(R.string.stop_screen_share)
                 }
-                localParticipant?.run { publishTrack(screenVideoTrack) }
+                localParticipant?.run {
+                    publishTrack(screenVideoTrack)
+                }
                 screenVideoTrack
             } ?: run {
                 Snackbar.make(
@@ -637,7 +653,13 @@ class VideoActivity : AppCompatActivity() {
 
         private fun stopScreenCapture() {
             screenVideoTrack?.let {
-                localParticipant?.run { unpublishTrack(it) }
+                localVideoTrack = LocalVideoTrack.create(this,
+                        true,
+                        cameraCapturerCompat.videoCapturer)
+                addLocalVideoTrack()
+                localParticipant?.run {
+                    unpublishTrack(it)
+                }
                 it.release()
                 screenVideoTrack = null
                 screenCapturer = null
